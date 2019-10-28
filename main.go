@@ -64,7 +64,7 @@ func showModuleMarkdown(module *tfconfig.Module) {
 			blacklist := []string{"environment.tf.json", "global-variables.tf.json", "account-variables.tf.json", "variables.tf"}
 
 			for _, b := range blacklist {
-				if p.Filename == b {
+				if strings.HasSuffix(p.Filename, b) {
 					return false
 				}
 			}
