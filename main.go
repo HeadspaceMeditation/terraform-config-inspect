@@ -94,7 +94,7 @@ const markdownTemplate = `
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 {{- range .Variables }}{{if skip .Pos }}
-| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | | {{ tt .Default }} | {{if tt .Default}}no{{else}}yes{{end}} |{{end}}{{end}}
+| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{if tt .Default}}no{{else}}yes{{end}} |{{end}}{{end}}
 
 {{- if .Outputs}}
 
