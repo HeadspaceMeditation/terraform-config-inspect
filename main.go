@@ -17,7 +17,10 @@ func main() {
 	flag.Parse()
 
 	var dir string
-	if flag.NArg() > 0 {
+	if flag.NArg() > 0 && flag.Arg(0) == "--version" {
+		fmt.Println("0.2.0")
+		return
+	} else if flag.NArg() > 0 {
 		dir = flag.Arg(0)
 	} else {
 		dir = "."
