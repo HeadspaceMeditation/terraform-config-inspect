@@ -12,15 +12,18 @@ import (
 )
 
 var showJSON = flag.Bool("json", false, "produce JSON-formatted output")
+var showVersion = flag.Bool("version", false, "print version of terraform-config-inspect")
 
 func main() {
 	flag.Parse()
 
-	var dir string
-	if flag.NArg() > 0 && flag.Arg(0) == "--version" {
+	if *showVersion {
 		fmt.Println("0.2.0")
 		return
-	} else if flag.NArg() > 0 {
+	}
+
+	var dir string
+	if flag.NArg() > 0 {
 		dir = flag.Arg(0)
 	} else {
 		dir = "."
