@@ -17,7 +17,10 @@ func main() {
 	flag.Parse()
 
 	var dir string
-	if flag.NArg() > 0 {
+	if flag.NArg() > 0 && flag.Arg(0) == "--version" {
+		fmt.Println("0.2.0")
+		return
+	} else if flag.NArg() > 0 {
 		dir = flag.Arg(0)
 	} else {
 		dir = "."
@@ -50,8 +53,24 @@ func showModuleMarkdown(module *tfconfig.Module) {
 	tmpl := template.New("md")
 	tmpl.Funcs(template.FuncMap{
 		"tt": func(i interface{}) string {
-			s := fmt.Sprintf("%v", i)
+			var s string
+			switch i.(type) {
+			case float64, float32:
+				s = fmt.Sprintf("%.0f", i)
+			case nil:
+				return "``"
+			default:
+				s = fmt.Sprintf("%v", i)
+			}
 			return "`" + s + "`"
+		},
+		"req": func(i interface{}) string {
+			switch i.(type) {
+			case nil:
+				return "yes"
+			default:
+				return "no"
+			}
 		},
 		"commas": func(s []string) string {
 			return strings.Join(s, ", ")
@@ -94,7 +113,7 @@ const markdownTemplate = `
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 {{- range .Variables }}{{if skip .Pos }}
-| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{if tt .Default}}no{{else}}yes{{end}} |{{end}}{{end}}
+| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
 
 {{- if .Outputs}}
 
