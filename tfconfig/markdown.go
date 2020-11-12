@@ -38,18 +38,16 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 			j, err := json.Marshal(v)
 			return string(j), err
 		},
-		/*
-			"skip": func(p SourcePos) bool {
-				blacklist := []string{"environment.tf.json", "global-variables.tf.json", "account-variables.tf.json"}
+		"skip": func(p SourcePos) bool {
+			blacklist := []string{"environment.tf.json", "global-variables.tf.json", "account-variables.tf.json"}
 
-				for _, b := range blacklist {
-					if strings.HasSuffix(p.Filename, b) {
-						return false
-					}
+			for _, b := range blacklist {
+				if strings.HasSuffix(p.Filename, b) {
+					return false
 				}
-				return true
-			},
-		*/
+			}
+			return true
+		},
 		"severity": func(s DiagSeverity) string {
 			switch s {
 			case DiagError:
@@ -69,33 +67,42 @@ const markdownTemplate = `
 ## Inputs
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-{{- range .Variables }}
-| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}
+{{- range .Variables }}{{if skip .Pos }}
+| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
+
 {{- if .Outputs}}
+
 ## Outputs
 | Name | Description |
 |------|-------------|
 {{- range .Outputs }}
 | {{ tt .Name }} | {{ if .Description}}{{ .Description }}{{ end }} |
 {{- end}}{{end}}
+
 {{- if .ManagedResources}}
+
 Managed Resources
 -----------------
 {{- range .ManagedResources }}
 * {{ printf "%s.%s" .Type .Name | tt }}
 {{- end}}{{end}}
+
 {{- if .DataResources}}
+
 Data Resources
 --------------
 {{- range .DataResources }}
 * {{ printf "data.%s.%s" .Type .Name | tt }}
 {{- end}}{{end}}
+
 {{- if .ModuleCalls}}
+
 Child Modules
 -------------
 {{- range .ModuleCalls }}
 * {{ tt .Name }} from {{ tt .Source }}{{ if .Version }} ({{ tt .Version }}){{ end }}
 {{- end}}{{end}}
+
 {{- if .Diagnostics}}
 Problems
 -------------
