@@ -1,7 +1,7 @@
 package tfconfig
 
 import (
-	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl/v2"
 )
 
 var rootSchema = &hcl.BodySchema{
@@ -79,6 +79,9 @@ var outputSchema = &hcl.BodySchema{
 	Attributes: []hcl.AttributeSchema{
 		{
 			Name: "description",
+		},
+		{
+			Name: "sensitive",
 		},
 	},
 }
