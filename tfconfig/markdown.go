@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -38,7 +39,7 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 			j, err := json.Marshal(v)
 			return string(j), err
 		},
-		"skip": func(p SourcePos) bool {
+		"skip": func(p tfconfig.SourcePos) bool {
 			blacklist := []string{"environment.tf.json", "global-variables.tf.json", "account-variables.tf.json"}
 
 			for _, b := range blacklist {
@@ -48,15 +49,19 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 			}
 			return true
 		},
-		"severity": func(s DiagSeverity) string {
+		"severity": func(s tfconfig.DiagSeverity) string {
 			switch s {
-			case DiagError:
+			case tfconfig.DiagError:
 				return "Error: "
-			case DiagWarning:
+			case tfconfig.DiagWarning:
 				return "Warning: "
 			default:
 				return ""
 			}
+		},
+		"strip_newlines": func(input string) string {
+			re := regexp.MustCompile(`\r?\n`)
+			return re.ReplaceAllString(input, "<br />")
 		},
 	})
 	template.Must(tmpl.Parse(markdownTemplate))
@@ -68,7 +73,7 @@ const markdownTemplate = `
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 {{- range .Variables }}{{if skip .Pos }}
-| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
+| {{ tt .Name }} | {{- if .Description}}{{ strip_newlines .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
 
 {{- if .Outputs}}
 
@@ -76,7 +81,7 @@ const markdownTemplate = `
 | Name | Description |
 |------|-------------|
 {{- range .Outputs }}
-| {{ tt .Name }} | {{ if .Description}}{{ .Description }}{{ end }} |
+| {{ tt .Name }} | {{ if .Description}}{{ strip_newlines .Description }}{{ end }} |
 {{- end}}{{end}}
 
 {{- if .ManagedResources}}
@@ -104,14 +109,18 @@ Child Modules
 {{- end}}{{end}}
 
 {{- if .Diagnostics}}
+
 Problems
 -------------
 {{- range .Diagnostics }}
+
 {{ severity .Severity }}{{ .Summary }}{{ if .Pos }}
 -------------
+
 (at {{ tt .Pos.Filename }} line {{ .Pos.Line }}{{ end }})
 {{ if .Detail }}
 {{ .Detail }}
 {{- end }}
+
 {{- end}}{{end}}
 `
