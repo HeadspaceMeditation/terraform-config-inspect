@@ -13,17 +13,21 @@ $ go get github.com/hashicorp/terraform-config-inspect
 ```go
 import "github.com/hashicorp/terraform-config-inspect/tfconfig"
 
-/// ...
+// ...
 
-    module, diags := tfconfig.LoadModule(dir)
-    /// ...
+module, diags := tfconfig.LoadModule(dir)
+
+// ...
 ```
 
-There are not yet any formal compatibility promises for the Terraform
-configuration file format, so this tool can't yet promise to be compatible
-with unknown future extensions to the format. However, it *should* be capable
-of parsing valid configurations targeting Terraform versions between 0.10
-and 0.12.
+Due to the [Terraform v1.0 Compatibility Promises](https://www.terraform.io/docs/language/v1-compatibility-promises.html),
+this library should be able to parse Terraform configurations written in
+the language as defined with Terraform v1.0, although it may not immediately
+expose _new_ additions to the language added during the v1.x series.
+
+This library can also interpret valid Terraform configurations targeting
+Terraform v0.10 through v0.15, although the level of detail returned may
+be lower in older language versions.
 
 ## Command Line Tool
 
@@ -32,9 +36,10 @@ it also contains a CLI tool called `terraform-config-inspect`, installed
 automatically by the `go get` command above, that allows viewing module
 information in either a Markdown-like format or in JSON format.
 
-```
+```sh
 $ terraform-config-inspect path/to/module
-
+```
+```markdown
 # Module `path/to/module`
 
 Provider Requirements:
@@ -53,8 +58,10 @@ Provider Requirements:
 * `null_resource.b` from `null`
 ```
 
-```
+```sh
 $ terraform-config-inspect --json path/to/module
+```
+```json
 {
   "path": "path/to/module",
   "variables": {
@@ -135,6 +142,11 @@ Terraform itself: the features extracted by this package are unlikely to change
 significantly in future versions.
 
 For that reason, **we cannot accept external PRs for this codebase that add support for additional Terraform language features**.
+
+Furthermore, we consider this package feature-complete; if there is a feature
+you wish to see added, please open a GitHub issue first so we can discuss the
+feasability and design before submitting a pull request. We are unlikely to
+accept PRs that add features without discussion first.
 
 We would be happy to review PRs to fix bugs in existing functionality or to
 improve the usability of the Go package API, however. We will be hesitant about

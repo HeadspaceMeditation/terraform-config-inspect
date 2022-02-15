@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -58,17 +59,32 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 				return ""
 			}
 		},
+		"strip_newlines": func(input string) string {
+			re := regexp.MustCompile(`\r?\n`)
+			return re.ReplaceAllString(input, "<br />")
+		},
 	})
 	template.Must(tmpl.Parse(markdownTemplate))
 	return tmpl.Execute(w, module)
 }
 
 const markdownTemplate = `
+{{- if .RequiredCore}}
+## Core Version Constraints:
+{{- range .RequiredCore }}
+* {{ tt . }}
+{{- end}}{{end}}
+{{- if .RequiredProviders}}
+## Provider Requirements:
+{{- range $name, $req := .RequiredProviders }}
+* **{{ $name }}{{ if $req.Source }} ({{ $req.Source | tt }}){{ end }}:** {{ if $req.VersionConstraints }}{{ commas $req.VersionConstraints | tt }}{{ else }}(any version){{ end }}
+{{- end}}{{end}}
+
 ## Inputs
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 {{- range .Variables }}{{if skip .Pos }}
-| {{ tt .Name }} | {{- if .Description}}{{ .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
+| {{ tt .Name }} | {{- if .Description}}{{ strip_newlines .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
 
 {{- if .Outputs}}
 
@@ -76,42 +92,41 @@ const markdownTemplate = `
 | Name | Description |
 |------|-------------|
 {{- range .Outputs }}
-| {{ tt .Name }} | {{ if .Description}}{{ .Description }}{{ end }} |
+| {{ tt .Name }} | {{ if .Description}}{{ strip_newlines .Description }}{{ end }} |
 {{- end}}{{end}}
 
 {{- if .ManagedResources}}
 
-Managed Resources
------------------
+## Managed Resources
 {{- range .ManagedResources }}
 * {{ printf "%s.%s" .Type .Name | tt }}
 {{- end}}{{end}}
 
 {{- if .DataResources}}
 
-Data Resources
---------------
+## Data Resources
 {{- range .DataResources }}
 * {{ printf "data.%s.%s" .Type .Name | tt }}
 {{- end}}{{end}}
 
 {{- if .ModuleCalls}}
 
-Child Modules
--------------
+## Child Modules
 {{- range .ModuleCalls }}
 * {{ tt .Name }} from {{ tt .Source }}{{ if .Version }} ({{ tt .Version }}){{ end }}
 {{- end}}{{end}}
 
 {{- if .Diagnostics}}
-Problems
--------------
+
+## Problems
 {{- range .Diagnostics }}
+
 {{ severity .Severity }}{{ .Summary }}{{ if .Pos }}
--------------
+
 (at {{ tt .Pos.Filename }} line {{ .Pos.Line }}{{ end }})
 {{ if .Detail }}
 {{ .Detail }}
 {{- end }}
+
 {{- end}}{{end}}
 `
