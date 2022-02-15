@@ -69,22 +69,30 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 }
 
 const markdownTemplate = `
+# Module {{ tt .Path }}
+
 {{- if .RequiredCore}}
-## Core Version Constraints:
+
+Core Version Constraints:
 {{- range .RequiredCore }}
 * {{ tt . }}
 {{- end}}{{end}}
+
 {{- if .RequiredProviders}}
-## Provider Requirements:
+
+Provider Requirements:
 {{- range $name, $req := .RequiredProviders }}
 * **{{ $name }}{{ if $req.Source }} ({{ $req.Source | tt }}){{ end }}:** {{ if $req.VersionConstraints }}{{ commas $req.VersionConstraints | tt }}{{ else }}(any version){{ end }}
 {{- end}}{{end}}
+
+{{- if .Variables}}
 
 ## Inputs
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 {{- range .Variables }}{{if skip .Pos }}
-| {{ tt .Name }} | {{- if .Description}}{{ strip_newlines .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Default }} |{{end}}{{end}}
+| {{ tt .Name }} | {{- if .Description}}{{ strip_newlines .Description }}{{ end }} | {{- if .Type}}{{ .Type }}{{ end }} | {{ tt .Default }} | {{req .Required }} |
+{{- end}}{{end}}{{end}}
 
 {{- if .Outputs}}
 
@@ -99,14 +107,14 @@ const markdownTemplate = `
 
 ## Managed Resources
 {{- range .ManagedResources }}
-* {{ printf "%s.%s" .Type .Name | tt }}
+* {{ printf "%s.%s" .Type .Name | tt }} from {{ tt .Provider.Name }}
 {{- end}}{{end}}
 
 {{- if .DataResources}}
 
 ## Data Resources
 {{- range .DataResources }}
-* {{ printf "data.%s.%s" .Type .Name | tt }}
+* {{ printf "data.%s.%s" .Type .Name | tt }} from {{ tt .Provider.Name }}
 {{- end}}{{end}}
 
 {{- if .ModuleCalls}}
@@ -129,4 +137,5 @@ const markdownTemplate = `
 {{- end }}
 
 {{- end}}{{end}}
+
 `
