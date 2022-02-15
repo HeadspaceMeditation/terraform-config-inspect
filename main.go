@@ -93,10 +93,6 @@ func showModuleMarkdown(module *tfconfig.Module) {
 			}
 			return true
 		},
-		"strip_newlines": func(input string) string {
-			re := regexp.MustCompile(`\r?\n`)
-			return re.ReplaceAllString(input, "<br />")
-		},
 		"severity": func(s tfconfig.DiagSeverity) string {
 			switch s {
 			case tfconfig.DiagError:
@@ -109,8 +105,7 @@ func showModuleMarkdown(module *tfconfig.Module) {
 		},
 		"strip_newlines": func(input string) string {
 			re := regexp.MustCompile(`\r?\n`)
-
-			return re.ReplaceAllString(input, " ")
+			return re.ReplaceAllString(input, "<br />")
 		},
 	})
 	template.Must(tmpl.Parse(markdownTemplate))
