@@ -1,0 +1,19 @@
+version: 2.1
+
+executors:
+  go:
+    docker:
+      - image: cimg/go:1.17
+
+jobs:
+  test:
+    executor:
+      name: go
+    steps:
+      - checkout
+      - run: go test
+
+workflows:
+  terraform-config-inspect:
+    jobs:
+      - test
