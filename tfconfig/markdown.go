@@ -39,7 +39,7 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 			j, err := json.Marshal(v)
 			return string(j), err
 		},
-		"skip": func(p tfconfig.SourcePos) bool {
+		"skip": func(p SourcePos) bool {
 			blacklist := []string{"environment.tf.json", "global-variables.tf.json", "account-variables.tf.json"}
 
 			for _, b := range blacklist {
@@ -49,11 +49,11 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 			}
 			return true
 		},
-		"severity": func(s tfconfig.DiagSeverity) string {
+		"severity": func(s DiagSeverity) string {
 			switch s {
-			case tfconfig.DiagError:
+			case DiagError:
 				return "Error: "
-			case tfconfig.DiagWarning:
+			case DiagWarning:
 				return "Warning: "
 			default:
 				return ""
@@ -69,6 +69,17 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 }
 
 const markdownTemplate = `
+{{- if .RequiredCore}}
+## Core Version Constraints:
+{{- range .RequiredCore }}
+* {{ tt . }}
+{{- end}}{{end}}
+{{- if .RequiredProviders}}
+## Provider Requirements:
+{{- range $name, $req := .RequiredProviders }}
+* **{{ $name }}{{ if $req.Source }} ({{ $req.Source | tt }}){{ end }}:** {{ if $req.VersionConstraints }}{{ commas $req.VersionConstraints | tt }}{{ else }}(any version){{ end }}
+{{- end}}{{end}}
+
 ## Inputs
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
@@ -86,36 +97,31 @@ const markdownTemplate = `
 
 {{- if .ManagedResources}}
 
-Managed Resources
------------------
+## Managed Resources
 {{- range .ManagedResources }}
 * {{ printf "%s.%s" .Type .Name | tt }}
 {{- end}}{{end}}
 
 {{- if .DataResources}}
 
-Data Resources
---------------
+## Data Resources
 {{- range .DataResources }}
 * {{ printf "data.%s.%s" .Type .Name | tt }}
 {{- end}}{{end}}
 
 {{- if .ModuleCalls}}
 
-Child Modules
--------------
+## Child Modules
 {{- range .ModuleCalls }}
 * {{ tt .Name }} from {{ tt .Source }}{{ if .Version }} ({{ tt .Version }}){{ end }}
 {{- end}}{{end}}
 
 {{- if .Diagnostics}}
 
-Problems
--------------
+## Problems
 {{- range .Diagnostics }}
 
 {{ severity .Severity }}{{ .Summary }}{{ if .Pos }}
--------------
 
 (at {{ tt .Pos.Filename }} line {{ .Pos.Line }}{{ end }})
 {{ if .Detail }}
