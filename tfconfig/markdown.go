@@ -25,8 +25,8 @@ func RenderMarkdown(w io.Writer, module *Module) error {
 			return "`" + s + "`"
 		},
 		"req": func(i interface{}) string {
-			switch i.(type) {
-			case nil:
+			switch i {
+			case true:
 				return "yes"
 			default:
 				return "no"
