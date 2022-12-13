@@ -11,7 +11,7 @@ $ go get github.com/hashicorp/terraform-config-inspect
 ```
 
 ```go
-import "github.com/hashicorp/terraform-config-inspect/tfconfig"
+import "github.com/ahashicorp/terraform-config-inspect/tfconfig"
 
 // ...
 
