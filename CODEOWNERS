@@ -1,2 +1,4 @@
-# This codebase is primarily maintained by the Terraform Core team.
-* @hashicorp/terraform-core
+# This file is managed by terraform in the github-infra repo.
+# Changes to this CODEOWNERS file should be done in github-infra.
+
+* @HeadspaceMeditation/ops
