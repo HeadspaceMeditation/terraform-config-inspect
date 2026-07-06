@@ -6,6 +6,10 @@ on:
 
 jobs:
   conventional-comments:
+    if: >-
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      !startsWith(github.event.pull_request.head.ref, 'dependabot/') &&
+      !startsWith(github.event.pull_request.head.ref, 'security/fix-')
     runs-on: ubuntu-latest
     steps:
       - uses: HeadspaceMeditation/hs-conventional-comments-action@v1
